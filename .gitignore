@@ -1,1 +1,6 @@
 /target
+/src/.board2.rs
+/src/.main2.rs
+/src/.square_contents2.rs
+/src/.square_size2.rs
+/src/.square2.rs
