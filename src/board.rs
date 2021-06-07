@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 use crossterm::{QueueableCommand, Result}; // trait must be in scope for the queue function to be present on the Stdout
 use crate::square_size::SquareSize;
 
-pub fn draw_board(sout: &mut Stdout, square_size: &SquareSize) -> Result<()>{
+pub fn draw_board(sout: &mut Stdout, square_size: &SquareSize) -> Result<(u16, u16)>{   // returns a tuple of coordinates, where the cursor can be returned to...
     // we need to draw two vertical, and two horizontal lines.
     let left_vert_x = square_size.width + 1;
     let right_vert_x = left_vert_x + square_size.width + 1;
@@ -30,5 +30,5 @@ pub fn draw_board(sout: &mut Stdout, square_size: &SquareSize) -> Result<()>{
 
     sout.flush()?;
 
-    Ok(())
+    Ok((horiz_min_x, vert_max_y))
 }

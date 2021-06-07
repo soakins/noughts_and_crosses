@@ -12,10 +12,18 @@ pub enum Directions {
     West,
 }
 
+pub struct PathsForCursor<'a> {
+    pub from: &'a Square<'a>,
+    pub to_north: Option<&'a Square<'a>>,
+    pub to_south: Option<&'a Square<'a>>,
+    pub to_east: Option<&'a Square<'a>>,
+    pub to_west: Option<&'a Square<'a>>,
+}
+
 pub struct Square <'a> {
     pub contents: SquareContents,
-    screen_x: u16,
-    screen_y: u16,
+    pub screen_x: u16,
+    pub screen_y: u16,
     square_size: &'a SquareSize,
 }
 impl <'a> Square <'a> {
@@ -30,30 +38,30 @@ impl <'a> Square <'a> {
     pub fn set_contents(&mut self, c: SquareContents){
         self.contents = c;
     }
-    pub fn from_another_square(s: &'a Square, d: Directions) -> Square<'a> {
+    pub fn spawn_another_square(&self, d: Directions) -> Square {
         
-        let mut new_x = s.screen_x;
-        let mut new_y = s.screen_y;
+        let mut new_x = self.screen_x;
+        let mut new_y = self.screen_y;
 
         match d {
             Directions::North => {
-                new_y = s.screen_y - s.square_size.height - 1;
+                new_y = self.screen_y - self.square_size.height - 1;
             },
             Directions::South => {
-                new_y = s.screen_y + s.square_size.height + 1;
+                new_y = self.screen_y + self.square_size.height + 1;
             },
             Directions::East => {
-                new_x = s.screen_x + s.square_size.width + 1;
+                new_x = self.screen_x + self.square_size.width + 1;
             },
             Directions::West => {
-                new_x = s.screen_x - s.square_size.width - 1;
+                new_x = self.screen_x - self.square_size.width - 1;
             },
         }
 
         Square::new (
             new_x,
             new_y,
-            &s.square_size
+            self.square_size
         )
     }
 

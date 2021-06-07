@@ -2,7 +2,18 @@ use std::io::{Stdout, Write};
 
 use crossterm::{ExecutableCommand, QueueableCommand, Result};
 
-use crate::square_size::SquareSize;
+use crate::square_size::{SquareSize, AllowableSizes};
+
+fn draw_lines(sout: &mut Stdout, lines: Vec<&str>, carriage_return_width: u16) -> Result<()> {
+
+    for a in lines.iter() {
+        sout.queue(crossterm::style::Print(a))?
+            .queue(crossterm::cursor::MoveDown(1))?
+            .queue(crossterm::cursor::MoveLeft(carriage_return_width))?;
+    }
+
+    Ok(())
+}
 
 pub enum SquareContents {
     Blank,
@@ -20,16 +31,68 @@ impl Clone for SquareContents {
 }
 impl SquareContents {
     pub fn draw_square_contents(&self, sout: &mut Stdout, x: u16, y: u16, square_size: &SquareSize) -> Result<()>{
-        
-        let to_print = match self {
-            SquareContents::Blank => " ",
-            SquareContents::O => "O",
-            SquareContents::X => "X",
-        };
 
-        sout.queue(crossterm::cursor::MoveTo(x, y))?
-            .queue(crossterm::style::Print(to_print))?;
+        sout.queue(crossterm::cursor::MoveTo(x, y))?;
 
+        let mut lines = Vec::<&str>::new();
+
+        match (self, &square_size.stated_size) {
+            (SquareContents::Blank, AllowableSizes::Size5x5) => {
+                lines.push("     ");
+                lines.push("     ");
+                lines.push("     ");
+                lines.push("     ");
+                lines.push("     ");
+            },
+            (SquareContents::Blank, AllowableSizes::Size8x8) => {
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");                    
+            }
+            (SquareContents::O, AllowableSizes::Size5x5) => {
+                lines.push("     ");
+                lines.push("  *  ");
+                lines.push(" * * ");
+                lines.push("  *  ");
+                lines.push("     ");
+            }
+            (SquareContents::O, AllowableSizes::Size8x8) => {
+                lines.push("        ");
+                lines.push("   **   ");
+                lines.push("  *  *  ");
+                lines.push(" *    * ");
+                lines.push(" *    * ");
+                lines.push("  *  *  ");
+                lines.push("   **   ");
+                lines.push("        ");
+            }
+            (SquareContents::X, AllowableSizes::Size5x5) => {
+                lines.push("     ");
+                lines.push(" * * ");
+                lines.push("  *  ");
+                lines.push(" * * ");
+                lines.push("     ");
+            }
+            (SquareContents::X, AllowableSizes::Size8x8) => {
+                    lines.push("        ");
+                    lines.push(" *    * ");
+                    lines.push("  *  *  ");
+                    lines.push("   **   ");
+                    lines.push("   **   ");
+                    lines.push("  *  *  ");
+                    lines.push(" *    * ");
+                    lines.push("        ");
+            }
+
+        }
+
+
+        draw_lines(sout, lines, square_size.width)?;
 
         sout.flush()?;
 
