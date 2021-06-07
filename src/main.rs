@@ -111,7 +111,7 @@ fn main() -> Result<()> {
 
     let mut keep_looping = true;
 
-    let polling_duration = std::time::Duration::from_millis(25);
+    let polling_duration = std::time::Duration::from_millis(250);
 
     while keep_looping {
         
@@ -122,14 +122,15 @@ fn main() -> Result<()> {
                 
                         let key_code = kev.code;
                         match key_code {
-                            crossterm::event::KeyCode::Esc => {keep_looping = false;}
-                            crossterm::event::KeyCode::Char(c) => {
+/*                            crossterm::event::KeyCode::Char(c) => {
                                 match c {
                                     'o' => {cursor_square.set_contents(SquareContents::O);}
                                     'x' => {cursor_square.set_contents(SquareContents::X);}
                                     ' ' => {cursor_square.set_contents(SquareContents::Blank);}
+                                    _ => {}
                                 }
-                            }
+                            }*/
+                            crossterm::event::KeyCode::Esc => {keep_looping = false;}
                             crossterm::event::KeyCode::Up => {destination_square = try_moving(square::Directions::North, &paths, &cursor_square);}
                             crossterm::event::KeyCode::Down => {destination_square = try_moving(square::Directions::South, &paths, &cursor_square);}
                             crossterm::event::KeyCode::Left => {destination_square = try_moving(square::Directions::West, &paths, &cursor_square);}
@@ -151,13 +152,13 @@ fn main() -> Result<()> {
         // draw the game cursor
 
         sout.queue(crossterm::cursor::MoveTo(cursor_square.screen_x, cursor_square.screen_y))?
-            .queue(crossterm::style::Print("⌜"))?
+            .queue(crossterm::style::Print("\u{250C}"))?
             .queue(crossterm::cursor::MoveTo(cursor_square.screen_x + square_size.width - 1, cursor_square.screen_y))?
-            .queue(crossterm::style::Print("⌝"))?
+            .queue(crossterm::style::Print("\u{2510}"))?
             .queue(crossterm::cursor::MoveTo(cursor_square.screen_x, cursor_square.screen_y + square_size.height - 1))?
-            .queue(crossterm::style::Print("⌞"))?
+            .queue(crossterm::style::Print("\u{2514}"))?
             .queue(crossterm::cursor::MoveTo(cursor_square.screen_x + square_size.width - 1, cursor_square.screen_y + square_size.height - 1))?
-            .queue(crossterm::style::Print("⌟"))?;
+            .queue(crossterm::style::Print("\u{2518}"))?;
 
         sout.flush()?;
 
