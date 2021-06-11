@@ -74,6 +74,7 @@ fn main() -> Result<()> {
     let system_cursor_pos = draw_board(&mut sout)?; // function returns a tuple of coords
     let mut all_squares: Vec<Square> = Vec::new();
     let mut paths: Vec<square::PathsForCursor> = Vec::new();
+    let mut winning_lines = winning_lines::WinningLines::new();
 
     {
         let top_left_square = Square::new(1, 1);
@@ -172,6 +173,27 @@ fn main() -> Result<()> {
             to_east: None,
             to_west: Some(bottom_centre_square),
         });
+
+        winning_lines.add_a_line(top_left_square, top_centre_square, top_right_square);
+        winning_lines.add_a_line(
+            middle_left_square,
+            middle_centre_square,
+            middle_right_square,
+        );
+        winning_lines.add_a_line(
+            bottom_left_square,
+            bottom_centre_square,
+            bottom_right_square,
+        );
+        winning_lines.add_a_line(top_left_square, middle_left_square, bottom_left_square);
+        winning_lines.add_a_line(
+            top_centre_square,
+            middle_centre_square,
+            bottom_centre_square,
+        );
+        winning_lines.add_a_line(top_right_square, middle_right_square, bottom_right_square);
+        winning_lines.add_a_line(top_left_square, middle_centre_square, bottom_right_square);
+        winning_lines.add_a_line(top_right_square, middle_centre_square, bottom_left_square);
     }
 
     let mut cursor_square: usize = 0;
@@ -247,7 +269,10 @@ fn main() -> Result<()> {
                                     _ => {}
                                 }
                                 sq.draw_square(&mut sout)?;
-                                test_for_a_win();
+                                let a_win = winning_lines.test_for_a_win(&all_squares);
+                                if a_win.is_some() {
+                                    panic!("A win!");
+                                }
                                 players.next_player();
                             }
                         }

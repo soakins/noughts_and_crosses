@@ -30,6 +30,16 @@ impl Display for SquareContents {
         write!(f, "'{}'", character)
     }
 }
+impl PartialEq for SquareContents {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SquareContents::X, SquareContents::X) => true,
+            (SquareContents::O, SquareContents::O) => true,
+            (SquareContents::Blank, SquareContents::Blank) => true,
+            _ => false,
+        }
+    }
+}
 impl SquareContents {
     pub fn draw_square_contents(&self, sout: &mut Stdout, x: u16, y: u16) -> Result<()> {
         sout.queue(crossterm::cursor::MoveTo(x, y))?;
@@ -96,5 +106,14 @@ impl SquareContents {
         draw_lines(sout, lines, THE_SQUARE_SIZE.width)?;
 
         Ok(())
+    }
+}
+mod square_content_tests {
+    use super::SquareContents;
+    #[test]
+    fn test_one() {
+        let a = SquareContents::O;
+        let b = SquareContents::O;
+        assert_eq!(a, b);
     }
 }

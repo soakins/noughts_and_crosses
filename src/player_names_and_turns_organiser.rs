@@ -98,8 +98,9 @@ impl PlayerNames {
         }
     }
 }
-mod tests {
+mod player_name_tests {
     use super::PlayerNames;
+    use super::SquareContents;
 
     #[test]
     fn test_one() {
