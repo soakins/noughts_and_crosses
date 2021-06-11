@@ -2,6 +2,7 @@ mod square_contents;
 mod square;
 mod square_size;
 mod board;
+mod player_names_and_turns_organiser;
 
 use std::io::Stdout;    // this is Struct representing standard out
 use std::io::stdout;    // This function returns a value of the above type
@@ -12,7 +13,20 @@ use square::Square;
 use square_contents::SquareContents;
 use crossterm::Result;
 use crossterm::{QueueableCommand, ExecutableCommand};
-use square_size::SquareSize;
+use square_size:: THE_SQUARE_SIZE;
+
+#[derive(Clone, Copy)]
+enum GameState {
+    NoGameYet,
+    PlayerOneToStart,
+    PlayerTwoToStart,
+}
+#[derive(Clone, Copy)]
+enum CurrentPlayerState {
+    NoPlayerSet,
+    PlayerOneSet,
+    PlayerTwoSet,
+}
 
 fn initialise_standard_out_variable() -> Stdout {
     stdout()
@@ -29,21 +43,25 @@ fn exit_from_crossterm(sout: &mut Stdout) -> Result<()>{
     sout.execute(crossterm::terminal::LeaveAlternateScreen).map(|_| ())?;
     crossterm::terminal::disable_raw_mode().map(|_| ())
 }
-fn try_moving<'a>(direction: square::Directions, paths: &'a Vec<square::PathsForCursor>, cursor_square: &'a Square) -> Option<&'a Square<'a>> {
-    let mut count = 0;
-    let mut destination_square_maybe: Option<&Square> = None;
+fn try_moving<'a>(direction: square::Directions, paths: &'a Vec<square::PathsForCursor>, cursor_square: usize) -> Option<usize> {
+    
+    let mut destination_square_maybe: Option<usize> = None;
+    // Find a reference to a square in the squares Vector, using the usize index passed in... 
+
     for a in paths.iter() {
-        if std::ptr::eq(a.from, cursor_square) {
+        if a.from == cursor_square {
             match direction {
                 square::Directions::North => {destination_square_maybe = a.to_north;}
                 square::Directions::South => {destination_square_maybe = a.to_south;}
                 square::Directions::East => {destination_square_maybe = a.to_east;}
                 square::Directions::West => {destination_square_maybe = a.to_west;}
             }
+            break;
         }
-        count += 1;
     }
+
     destination_square_maybe
+
 }
 
 fn main() -> Result<()> {
@@ -52,116 +70,124 @@ fn main() -> Result<()> {
 
     initialise_crossterm(&mut sout)?;
 
-    let square_size = SquareSize::from_allowable_size(square_size::AllowableSizes::Size8x8);
-
-    let system_cursor_pos = draw_board(&mut sout, &square_size)?;  // function returns a tuple of coords
-
-    let mut top_left = Square::new (
-        1,
-        1,
-        &square_size,
-    );
-
-    let mut top_centre = top_left.spawn_another_square(square::Directions::East);
-
-    let mut top_right = top_centre.spawn_another_square(square::Directions::East);
-
-    let mut middle_left = top_left.spawn_another_square(square::Directions::South);
-
-    let mut middle_centre = top_centre.spawn_another_square(square::Directions::South);
-
-    let mut middle_right = top_right.spawn_another_square(square::Directions::South);
-
-    let mut bottom_left = middle_left.spawn_another_square(square::Directions::South);
-
-    let mut bottom_centre = middle_centre.spawn_another_square(square::Directions::South);
-
-    let mut bottom_right = middle_right.spawn_another_square(square::Directions::South);
-
+    let system_cursor_pos = draw_board(&mut sout)?;  // function returns a tuple of coords
+    let mut all_squares: Vec<Square> = Vec::new();
     let mut paths: Vec<square::PathsForCursor> = Vec::new();
 
-    paths.push(square::PathsForCursor{from: &top_left, to_north: None, to_south: Some(&middle_left), to_east: Some(&top_centre), to_west: None});
-    paths.push(square::PathsForCursor{from: &top_centre, to_north: None, to_south: Some(&middle_centre), to_east: Some(&top_right), to_west: Some(&top_left)});
-    paths.push(square::PathsForCursor{from: &top_right, to_north: None, to_south: Some(&middle_right), to_east: None, to_west: Some(&top_centre)});
-    paths.push(square::PathsForCursor{from: &middle_left, to_north: Some(&top_left), to_south: Some(&bottom_left), to_east: Some(&middle_centre), to_west: None});
-    paths.push(square::PathsForCursor{from: &middle_centre, to_north: Some(&top_centre), to_south: Some(&bottom_centre), to_east: Some(&middle_right), to_west: Some(&middle_left)});
-    paths.push(square::PathsForCursor{from: &middle_right, to_north: Some(&top_right), to_south: Some(&bottom_right), to_east: None, to_west: Some(&middle_centre)});
-    paths.push(square::PathsForCursor{from: &bottom_left, to_north: Some(&middle_left), to_south: None, to_east: Some(&bottom_centre), to_west: None});
-    paths.push(square::PathsForCursor{from: &bottom_centre, to_north: Some(&middle_centre), to_south: None, to_east: Some(&bottom_right), to_west: Some(&bottom_left)});
-    paths.push(square::PathsForCursor{from: &bottom_right, to_north: Some(&middle_right), to_south: None, to_east: None, to_west: Some(&bottom_centre)});
+    {
+        let top_left_square = Square::new (1,1,);
+        let top_centre_square = top_left_square.spawn_another_square(square::Directions::East);
+        let top_right_square = top_centre_square.spawn_another_square(square::Directions::East);
+        let middle_left_square = top_left_square.spawn_another_square(square::Directions::South);
+        let middle_centre_square = top_centre_square.spawn_another_square(square::Directions::South);
+        let middle_right_square = top_right_square.spawn_another_square(square::Directions::South);
+        let bottom_left_square = middle_left_square.spawn_another_square(square::Directions::South);
+        let bottom_centre_square = middle_centre_square.spawn_another_square(square::Directions::South);
+        let bottom_right_square = middle_right_square.spawn_another_square(square::Directions::South);
 
-    /*top_left.set_neighbour(square::Directions::East, &top_centre);
-    top_left.set_neighbour(square::Directions::South, &middle_left);
+        all_squares.push(top_left_square);      // index 0
+        all_squares.push(top_centre_square);
+        all_squares.push(top_right_square);
+        all_squares.push(middle_left_square);
+        all_squares.push(middle_centre_square);
+        all_squares.push(middle_right_square);
+        all_squares.push(bottom_left_square);
+        all_squares.push(bottom_centre_square);
+        all_squares.push(bottom_right_square);  // index 8
 
-    top_centre.set_neighbour(square::Directions::East, &top_right);
-    top_centre.set_neighbour(square::Directions::South, &middle_centre);
-    top_centre.set_neighbour(square::Directions::West, &top_left);
+        let top_left_square: usize = 0;
+        let top_centre_square: usize = 1;
+        let top_right_square: usize = 2;
+        let middle_left_square: usize = 3;
+        let middle_centre_square: usize = 4;
+        let middle_right_square: usize = 5;
+        let bottom_left_square: usize = 6;
+        let bottom_centre_square: usize = 7;
+        let bottom_right_square: usize = 8;
 
-    top_right.set_neighbour(square::Directions::South, &middle_right);
-    top_right.set_neighbour(square::Directions::West, &top_centre);*/
+        paths.push(square::PathsForCursor{from: top_left_square, to_north: None, to_south: Some(middle_left_square), to_east: Some(top_centre_square), to_west: None});
+        paths.push(square::PathsForCursor{from: top_centre_square, to_north: None, to_south: Some(middle_centre_square), to_east: Some(top_right_square), to_west: Some(top_left_square)});
+        paths.push(square::PathsForCursor{from: top_right_square, to_north: None, to_south: Some(middle_right_square), to_east: None, to_west: Some(top_centre_square)});
+        paths.push(square::PathsForCursor{from: middle_left_square, to_north: Some(top_left_square), to_south: Some(bottom_left_square), to_east: Some(middle_centre_square), to_west: None});
+        paths.push(square::PathsForCursor{from: middle_centre_square, to_north: Some(top_centre_square), to_south: Some(bottom_centre_square), to_east: Some(middle_right_square), to_west: Some(middle_left_square)});
+        paths.push(square::PathsForCursor{from: middle_right_square, to_north: Some(top_right_square), to_south: Some(bottom_right_square), to_east: None, to_west: Some(middle_centre_square)});
+        paths.push(square::PathsForCursor{from: bottom_left_square, to_north: Some(middle_left_square), to_south: None, to_east: Some(bottom_centre_square), to_west: None});
+        paths.push(square::PathsForCursor{from: bottom_centre_square, to_north: Some(middle_centre_square), to_south: None, to_east: Some(bottom_right_square), to_west: Some(bottom_left_square)});
+        paths.push(square::PathsForCursor{from: bottom_right_square, to_north: Some(middle_right_square), to_south: None, to_east: None, to_west: Some(bottom_centre_square)});
 
-    /*bottom_right.set_contents(SquareContents::O);
-    bottom_right.draw_square(&mut sout)?;
+    }
 
-    bottom_left.set_contents(SquareContents::X);
-    bottom_left.draw_square(&mut sout)?;*/
+    let mut cursor_square :usize = 0; 
+    let mut destination_square: Option<usize> = None;
 
-    let mut cursor_square = &middle_left;
-    let mut destination_square: Option<&Square> = None;
-
+    let game_state = GameState::NoGameYet;
+    let current_player_state = CurrentPlayerState::NoPlayerSet;
     let mut keep_looping = true;
-
-    let polling_duration = std::time::Duration::from_millis(250);
 
     while keep_looping {
         
-        match crossterm::event::poll(polling_duration) {
-            Ok(true) => {
-                match crossterm::event::read()? {
-                    crossterm::event::Event::Key(kev) => {
-                
-                        let key_code = kev.code;
-                        match key_code {
-/*                            crossterm::event::KeyCode::Char(c) => {
+  /*      match GameState {
+            GameState::NoGameYet | GameState::PlayerTwoToStart => {
+                game_state GameState::PlayerOneToStart
+            }
+        }*/
+
+       /*  match current_player_state {
+            CurrentPlayerState::NoPlayerSet | CurrentPlayerState::PlayerTwoSet => {
+                current_player_state = CurrentPlayerState::PlayerOneSet
+            }
+            CurrentPlayerState::PlayerOneSet => {
+                current_player_state = CurrentPlayerState::PlayerTwoSet
+            }
+        }*/
+
+        match crossterm::event::read()? {
+            crossterm::event::Event::Key(key_event) => {                
+                match key_event.code {     //  there are modifiers available, but I don't think we care about those?? Maybe capital letters are a different char?
+                    crossterm::event::KeyCode::Char(c) => {
+                        match "OoXx ".find(c) {
+                            None => {}    // the character pressed was not one we're interested in...
+                            Some(_) => {
+                                let sq = all_squares.get_mut(cursor_square).expect("Oh no!");
                                 match c {
-                                    'o' => {cursor_square.set_contents(SquareContents::O);}
-                                    'x' => {cursor_square.set_contents(SquareContents::X);}
-                                    ' ' => {cursor_square.set_contents(SquareContents::Blank);}
+                                    'o' => {sq.set_contents(SquareContents::O);}
+                                    'x' => {sq.set_contents(SquareContents::X);}
+                                    ' ' => {sq.set_contents(SquareContents::Blank);}
                                     _ => {}
                                 }
-                            }*/
-                            crossterm::event::KeyCode::Esc => {keep_looping = false;}
-                            crossterm::event::KeyCode::Up => {destination_square = try_moving(square::Directions::North, &paths, &cursor_square);}
-                            crossterm::event::KeyCode::Down => {destination_square = try_moving(square::Directions::South, &paths, &cursor_square);}
-                            crossterm::event::KeyCode::Left => {destination_square = try_moving(square::Directions::West, &paths, &cursor_square);}
-                            crossterm::event::KeyCode::Right => {destination_square = try_moving(square::Directions::East, &paths, &cursor_square);}
-                            _ => {}
+                                sq.draw_square(&mut sout)?;
+                            }
                         }
                     }
+                    crossterm::event::KeyCode::Esc => {keep_looping = false;}
+                    crossterm::event::KeyCode::Up => {destination_square = try_moving(square::Directions::North, &paths, cursor_square);}
+                    crossterm::event::KeyCode::Down => {destination_square = try_moving(square::Directions::South, &paths, cursor_square);}
+                    crossterm::event::KeyCode::Left => {destination_square = try_moving(square::Directions::West, &paths, cursor_square);}
+                    crossterm::event::KeyCode::Right => {destination_square = try_moving(square::Directions::East, &paths, cursor_square);}
                     _ => {}
-                }
-                if destination_square.is_some() {
-                    cursor_square.draw_square(&mut sout)?;   // will rub out current game cursor
-                    cursor_square = destination_square.unwrap();
-                    destination_square = None
                 }
             }
             _ => {}
         }
 
+        if destination_square.is_some() {
+            let sq = all_squares.get(cursor_square).expect("This really should find a square...");
+            sq.draw_square(&mut sout)?;   // will rub out current game cursor
+            cursor_square = destination_square.unwrap();
+            destination_square = None;
+        }
+
         // draw the game cursor
 
-        sout.queue(crossterm::cursor::MoveTo(cursor_square.screen_x, cursor_square.screen_y))?
+        let sq = all_squares.get(cursor_square).expect("Again, we should have foud a square.");
+        sout.queue(crossterm::cursor::MoveTo(sq.screen_x, sq.screen_y))?
             .queue(crossterm::style::Print("\u{250C}"))?
-            .queue(crossterm::cursor::MoveTo(cursor_square.screen_x + square_size.width - 1, cursor_square.screen_y))?
+            .queue(crossterm::cursor::MoveTo(sq.screen_x + THE_SQUARE_SIZE.width - 1, sq.screen_y))?
             .queue(crossterm::style::Print("\u{2510}"))?
-            .queue(crossterm::cursor::MoveTo(cursor_square.screen_x, cursor_square.screen_y + square_size.height - 1))?
+            .queue(crossterm::cursor::MoveTo(sq.screen_x, sq.screen_y + THE_SQUARE_SIZE.height - 1))?
             .queue(crossterm::style::Print("\u{2514}"))?
-            .queue(crossterm::cursor::MoveTo(cursor_square.screen_x + square_size.width - 1, cursor_square.screen_y + square_size.height - 1))?
+            .queue(crossterm::cursor::MoveTo(sq.screen_x + THE_SQUARE_SIZE.width - 1, sq.screen_y + THE_SQUARE_SIZE.height - 1))?
             .queue(crossterm::style::Print("\u{2518}"))?;
-
-        sout.flush()?;
-
 
         // move the system cursor to somewhere that it can remain every time.
         sout.queue(crossterm::cursor::MoveTo(system_cursor_pos.0, system_cursor_pos.1))?
@@ -175,4 +201,5 @@ fn main() -> Result<()> {
     exit_from_crossterm(&mut sout)?;
 
     Ok(())
+
 }

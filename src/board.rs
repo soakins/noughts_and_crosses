@@ -1,18 +1,18 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 use crossterm::{QueueableCommand, Result}; // trait must be in scope for the queue function to be present on the Stdout
-use crate::square_size::SquareSize;
+use crate::square_size::THE_SQUARE_SIZE;
 
-pub fn draw_board(sout: &mut Stdout, square_size: &SquareSize) -> Result<(u16, u16)>{   // returns a tuple of coordinates, where the cursor can be returned to...
+pub fn draw_board(sout: &mut Stdout) -> Result<(u16, u16)>{   // returns a tuple of coordinates, where the cursor can be returned to...
     // we need to draw two vertical, and two horizontal lines.
-    let left_vert_x = square_size.width + 1;
-    let right_vert_x = left_vert_x + square_size.width + 1;
+    let left_vert_x = THE_SQUARE_SIZE.width + 1;
+    let right_vert_x = left_vert_x + THE_SQUARE_SIZE.width + 1;
     let vert_min_y = 1u16;
-    let vert_max_y = vert_min_y + (square_size.height * 3) + 2;   // two extra to accommodate the two horizontal lines
+    let vert_max_y = vert_min_y + (THE_SQUARE_SIZE.height * 3) + 2;   // two extra to accommodate the two horizontal lines
 
-    let upper_horiz_y = square_size.height + 1;
-    let lower_horiz_y = upper_horiz_y + square_size.height + 1;
+    let upper_horiz_y = THE_SQUARE_SIZE.height + 1;
+    let lower_horiz_y = upper_horiz_y + THE_SQUARE_SIZE.height + 1;
     let horiz_min_x = 1u16;
-    let horiz_max_x = horiz_min_x + (square_size.width * 3) + 2;   // two extra to accommodate the two vertical lines
+    let horiz_max_x = horiz_min_x + (THE_SQUARE_SIZE.width * 3) + 2;   // two extra to accommodate the two vertical lines
 
     for a in vert_min_y .. vert_max_y {
         sout.queue(crossterm::cursor::MoveTo(left_vert_x, a))?
@@ -27,8 +27,6 @@ pub fn draw_board(sout: &mut Stdout, square_size: &SquareSize) -> Result<(u16, u
             .queue(crossterm::cursor::MoveTo(a, lower_horiz_y))?
             .queue(crossterm::style::Print("-"))?;
     }
-
-    sout.flush()?;
 
     Ok((horiz_min_x, vert_max_y))
 }

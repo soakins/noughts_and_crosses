@@ -1,8 +1,8 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 
-use crossterm::{ExecutableCommand, QueueableCommand, Result};
+use crossterm::{QueueableCommand, Result};
 
-use crate::square_size::{SquareSize, AllowableSizes};
+use crate::square_size::THE_SQUARE_SIZE;
 
 fn draw_lines(sout: &mut Stdout, lines: Vec<&str>, carriage_return_width: u16) -> Result<()> {
 
@@ -15,36 +15,28 @@ fn draw_lines(sout: &mut Stdout, lines: Vec<&str>, carriage_return_width: u16) -
     Ok(())
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum SquareContents {
     Blank,
     X,
     O,
 }
-impl Clone for SquareContents {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Blank => SquareContents::Blank,
-            Self::O => SquareContents::O,
-            Self::X => SquareContents::X,
-        }
-    }
-}
 impl SquareContents {
-    pub fn draw_square_contents(&self, sout: &mut Stdout, x: u16, y: u16, square_size: &SquareSize) -> Result<()>{
+    pub fn draw_square_contents(&self, sout: &mut Stdout, x: u16, y: u16) -> Result<()>{
 
         sout.queue(crossterm::cursor::MoveTo(x, y))?;
 
         let mut lines = Vec::<&str>::new();
 
-        match (self, &square_size.stated_size) {
-            (SquareContents::Blank, AllowableSizes::Size5x5) => {
+        match (self, THE_SQUARE_SIZE.width, THE_SQUARE_SIZE.height) {
+            (SquareContents::Blank, 5, 5) => {
                 lines.push("     ");
                 lines.push("     ");
                 lines.push("     ");
                 lines.push("     ");
                 lines.push("     ");
             },
-            (SquareContents::Blank, AllowableSizes::Size8x8) => {
+            (SquareContents::Blank, 8, 8) => {
                 lines.push("        ");
                 lines.push("        ");
                 lines.push("        ");
@@ -54,14 +46,14 @@ impl SquareContents {
                 lines.push("        ");
                 lines.push("        ");                    
             }
-            (SquareContents::O, AllowableSizes::Size5x5) => {
+            (SquareContents::O, 5, 5) => {
                 lines.push("     ");
                 lines.push("  *  ");
                 lines.push(" * * ");
                 lines.push("  *  ");
                 lines.push("     ");
             }
-            (SquareContents::O, AllowableSizes::Size8x8) => {
+            (SquareContents::O, 8, 8) => {
                 lines.push("        ");
                 lines.push("   **   ");
                 lines.push("  *  *  ");
@@ -71,14 +63,14 @@ impl SquareContents {
                 lines.push("   **   ");
                 lines.push("        ");
             }
-            (SquareContents::X, AllowableSizes::Size5x5) => {
+            (SquareContents::X, 5, 5) => {
                 lines.push("     ");
                 lines.push(" * * ");
                 lines.push("  *  ");
                 lines.push(" * * ");
                 lines.push("     ");
             }
-            (SquareContents::X, AllowableSizes::Size8x8) => {
+            (SquareContents::X, 8, 8) => {
                     lines.push("        ");
                     lines.push(" *    * ");
                     lines.push("  *  *  ");
@@ -87,14 +79,14 @@ impl SquareContents {
                     lines.push("  *  *  ");
                     lines.push(" *    * ");
                     lines.push("        ");
+            }
+            _ => {
+                panic!("Unknown square size!");
             }
 
         }
 
-
-        draw_lines(sout, lines, square_size.width)?;
-
-        sout.flush()?;
+        draw_lines(sout, lines, THE_SQUARE_SIZE.width)?;
 
         Ok(())
         
