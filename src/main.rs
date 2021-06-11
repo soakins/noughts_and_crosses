@@ -3,6 +3,7 @@ mod player_names_and_turns_organiser;
 mod square;
 mod square_contents;
 mod square_size;
+mod winning_lines;
 
 use std::io::stdout; // This function returns a value of the above type
 use std::io::Stdout; // this is Struct representing standard out

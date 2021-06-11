@@ -38,6 +38,9 @@ impl Square {
     pub fn set_contents(&mut self, c: SquareContents) {
         self.contents = c;
     }
+    pub fn get_contents(&self) -> SquareContents {
+        self.contents
+    }
     pub fn spawn_another_square(&self, d: Directions) -> Square {
         let mut new_x = self.screen_x;
         let mut new_y = self.screen_y;
