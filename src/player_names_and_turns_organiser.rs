@@ -1,18 +1,34 @@
-use std::usize;
+use crate::square_contents::SquareContents;
+
+pub struct PlayerDetails {
+    pub player_name: String,
+    pub player_mark: SquareContents,
+}
 
 pub struct PlayerNames {
-    pub player1: String,
-    pub player2: String,
+    player1: PlayerDetails,
+    player2: PlayerDetails,
     last_player_returned: Option<usize>, // last i.e. 'most recent'
     first_player_returned: Option<usize>,
     last_round_number: usize,
     round_number: usize,
 }
 impl PlayerNames {
-    pub fn new(player1: String, player2: String) -> Self {
+    pub fn new(
+        player1: String,
+        player1_plays: SquareContents,
+        player2: String,
+        player2_plays: SquareContents,
+    ) -> Self {
         PlayerNames {
-            player1,
-            player2,
+            player1: PlayerDetails {
+                player_name: player1,
+                player_mark: player1_plays,
+            },
+            player2: PlayerDetails {
+                player_name: player2,
+                player_mark: player2_plays,
+            },
             last_player_returned: None,
             first_player_returned: None,
             last_round_number: 0,
@@ -20,10 +36,10 @@ impl PlayerNames {
         }
     }
 
-    fn player_name_from_number(&self, n: Option<usize>) -> &str {
+    fn player_from_number(&self, n: Option<usize>) -> &PlayerDetails {
         match n {
-            Some(0) => self.player1.as_str(),
-            Some(1) => self.player2.as_str(),
+            Some(0) => &self.player1,
+            Some(1) => &self.player2,
             None => {
                 panic!("202106111153 None found as player name is sought.")
             }
@@ -37,10 +53,10 @@ impl PlayerNames {
     }
 
     pub fn prompt_string(&self) -> String {
+        let pd = self.player_from_number(self.last_player_returned);
         format!(
-            "Round {}: {} to play...",
-            self.round_number,
-            self.player_name_from_number(self.last_player_returned)
+            "Round {}: {} to play, using {}...",
+            self.round_number, pd.player_name, pd.player_mark
         )
     }
 
@@ -48,7 +64,11 @@ impl PlayerNames {
         self.round_number += 1;
     }
 
-    pub fn next_player(&mut self) -> &str {
+    pub fn last_player(&self) -> &PlayerDetails {
+        self.player_from_number(self.last_player_returned)
+    }
+
+    pub fn next_player(&mut self) {
         if self.last_round_number < self.round_number {
             self.last_round_number = self.round_number;
             self.last_player_returned = None;
@@ -76,7 +96,6 @@ impl PlayerNames {
                 }
             },
         }
-        self.player_name_from_number(self.last_player_returned)
     }
 }
 mod tests {
@@ -84,13 +103,23 @@ mod tests {
 
     #[test]
     fn test_one() {
-        let mut pn = PlayerNames::new(String::from("Sam"), String::from("Claire"));
+        let mut pn = PlayerNames::new(
+            String::from("Sam"),
+            SquareContents::X,
+            String::from("Claire"),
+            SquareContents::O,
+        );
         for a in 1..5 {
-            println!("  Attempt {}: {}", a, pn.next_player());
+            let pd = pn.last_player();
+            println!(
+                "  Attempt {}: {} playing as {}",
+                a, pd.player_name, pd.player_mark
+            );
         }
         pn.next_round();
         for b in 1..6 {
-            println!("  2nd round / Attempt {}: {}", b, pn.next_player());
+            let pd = pn.last_player();
+            println!("  2nd round / Attempt {}: {}", b, pd.player_name);
         }
     }
 }

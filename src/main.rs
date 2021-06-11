@@ -19,6 +19,8 @@ fn initialise_standard_out_variable() -> Stdout {
     stdout()
 }
 
+fn test_for_a_win() {}
+
 fn initialise_crossterm(sout: &mut Stdout) -> Result<()> {
     // execute the crossterm command to flip to the alternate screen, squashing the return type unless it's an error, using map
     sout.execute(crossterm::terminal::EnterAlternateScreen)
@@ -173,11 +175,15 @@ fn main() -> Result<()> {
 
     let mut cursor_square: usize = 0;
     let mut destination_square: Option<usize> = None;
-    let mut players =
-        player_names_and_turns_organiser::PlayerNames::new(String::from("me"), String::from("you"));
+    let mut players = player_names_and_turns_organiser::PlayerNames::new(
+        String::from("me"),
+        SquareContents::X,
+        String::from("you"),
+        SquareContents::O,
+    );
     let mut keep_looping = true;
 
-    players.next_player();
+    players.next_player(); // this nudges the player name organiser onto the first turn.
 
     while keep_looping {
         // draw the game cursor
@@ -226,18 +232,21 @@ fn main() -> Result<()> {
                             Some(_) => {
                                 let sq = all_squares.get_mut(cursor_square).expect("Oh no!");
                                 match c {
+                                    /*
                                     'o' => {
                                         sq.set_contents(SquareContents::O);
                                     }
                                     'x' => {
                                         sq.set_contents(SquareContents::X);
                                     }
+                                    */
                                     ' ' => {
-                                        sq.set_contents(SquareContents::Blank);
+                                        sq.set_contents(players.last_player().player_mark);
                                     }
                                     _ => {}
                                 }
                                 sq.draw_square(&mut sout)?;
+                                test_for_a_win();
                                 players.next_player();
                             }
                         }

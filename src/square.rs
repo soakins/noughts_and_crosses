@@ -35,36 +35,33 @@ impl Square {
             screen_y,
         }
     }
-    pub fn set_contents(&mut self, c: SquareContents){
+    pub fn set_contents(&mut self, c: SquareContents) {
         self.contents = c;
     }
     pub fn spawn_another_square(&self, d: Directions) -> Square {
-        
         let mut new_x = self.screen_x;
         let mut new_y = self.screen_y;
 
         match d {
             Directions::North => {
                 new_y = self.screen_y - THE_SQUARE_SIZE.height - 1;
-            },
+            }
             Directions::South => {
                 new_y = self.screen_y + THE_SQUARE_SIZE.height + 1;
-            },
+            }
             Directions::East => {
                 new_x = self.screen_x + THE_SQUARE_SIZE.width + 1;
-            },
+            }
             Directions::West => {
                 new_x = self.screen_x - THE_SQUARE_SIZE.width - 1;
-            },
+            }
         }
 
-        Square::new (
-            new_x,
-            new_y,
-        )
+        Square::new(new_x, new_y)
     }
 
-    pub fn draw_square(&self, sout: &mut Stdout) -> Result<()>{
-        self.contents.draw_square_contents(sout, self.screen_x, self.screen_y)
+    pub fn draw_square(&self, sout: &mut Stdout) -> Result<()> {
+        self.contents
+            .draw_square_contents(sout, self.screen_x, self.screen_y)
     }
 }
