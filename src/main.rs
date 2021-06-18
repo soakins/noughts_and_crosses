@@ -1,8 +1,10 @@
 mod board;
 mod player_names_and_turns_organiser;
+mod screen_coords;
 mod square;
 mod square_contents;
 mod square_size;
+mod winning_line_coords_for_squares;
 mod winning_lines;
 
 use std::io::stdout; // This function returns a value of the above type
@@ -214,23 +216,26 @@ fn main() -> Result<()> {
         let sq = all_squares
             .get(cursor_square)
             .expect("Again, we should have foud a square.");
-        sout.queue(crossterm::cursor::MoveTo(sq.screen_x, sq.screen_y))?
-            .queue(crossterm::style::Print("\u{250C}"))?
-            .queue(crossterm::cursor::MoveTo(
-                sq.screen_x + THE_SQUARE_SIZE.width - 1,
-                sq.screen_y,
-            ))?
-            .queue(crossterm::style::Print("\u{2510}"))?
-            .queue(crossterm::cursor::MoveTo(
-                sq.screen_x,
-                sq.screen_y + THE_SQUARE_SIZE.height - 1,
-            ))?
-            .queue(crossterm::style::Print("\u{2514}"))?
-            .queue(crossterm::cursor::MoveTo(
-                sq.screen_x + THE_SQUARE_SIZE.width - 1,
-                sq.screen_y + THE_SQUARE_SIZE.height - 1,
-            ))?
-            .queue(crossterm::style::Print("\u{2518}"))?;
+        sout.queue(crossterm::cursor::MoveTo(
+            sq.screen_coords.x,
+            sq.screen_coords.y,
+        ))?
+        .queue(crossterm::style::Print("\u{250C}"))?
+        .queue(crossterm::cursor::MoveTo(
+            sq.screen_coords.x + THE_SQUARE_SIZE.width - 1,
+            sq.screen_coords.y,
+        ))?
+        .queue(crossterm::style::Print("\u{2510}"))?
+        .queue(crossterm::cursor::MoveTo(
+            sq.screen_coords.x,
+            sq.screen_coords.y + THE_SQUARE_SIZE.height - 1,
+        ))?
+        .queue(crossterm::style::Print("\u{2514}"))?
+        .queue(crossterm::cursor::MoveTo(
+            sq.screen_coords.x + THE_SQUARE_SIZE.width - 1,
+            sq.screen_coords.y + THE_SQUARE_SIZE.height - 1,
+        ))?
+        .queue(crossterm::style::Print("\u{2518}"))?;
 
         // move the system cursor to somewhere that it can remain every time.
         sout.queue(crossterm::cursor::MoveTo(

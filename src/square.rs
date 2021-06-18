@@ -2,6 +2,7 @@ use std::io::Stdout;
 
 use crossterm::Result;
 
+use crate::screen_coords::ScreenCoords;
 use crate::square_contents::SquareContents;
 use crate::square_size::THE_SQUARE_SIZE;
 
@@ -24,15 +25,25 @@ pub struct PathsForCursor {
 #[derive(Clone, Copy)]
 pub struct Square {
     pub contents: SquareContents,
-    pub screen_x: u16,
-    pub screen_y: u16,
+    pub screen_coords: ScreenCoords,
+    //pub vertical_win_coord_list: Vec<Coords>,
+    //pub horizontal_win_coord_list: Vec<Coords>,
+    //pub tlbr_diagonal_win_coord_list: Vec<Coords>,
+    //pub trbl_diagonal_win_coord_list: Vec<Coords>,
 }
 impl Square {
     pub fn new(screen_x: u16, screen_y: u16) -> Self {
+        let c = ScreenCoords {
+            x: screen_x,
+            y: screen_y,
+            //vertical_win_coord_list: Vec::new(),
+            //horizontal_win_coord_list: Vec::new(),
+            //tlbr_diagonal_win_coord_list: Vec::new(),
+            //trbl_diagonal_win_coord_list: Vec::new(),
+        };
         Square {
             contents: SquareContents::Blank,
-            screen_x,
-            screen_y,
+            screen_coords: c,
         }
     }
     pub fn set_contents(&mut self, c: SquareContents) {
@@ -42,21 +53,21 @@ impl Square {
         self.contents
     }
     pub fn spawn_another_square(&self, d: Directions) -> Square {
-        let mut new_x = self.screen_x;
-        let mut new_y = self.screen_y;
+        let mut new_x = self.screen_coords.x;
+        let mut new_y = self.screen_coords.y;
 
         match d {
             Directions::North => {
-                new_y = self.screen_y - THE_SQUARE_SIZE.height - 1;
+                new_y = self.screen_coords.y - THE_SQUARE_SIZE.height - 1;
             }
             Directions::South => {
-                new_y = self.screen_y + THE_SQUARE_SIZE.height + 1;
+                new_y = self.screen_coords.y + THE_SQUARE_SIZE.height + 1;
             }
             Directions::East => {
-                new_x = self.screen_x + THE_SQUARE_SIZE.width + 1;
+                new_x = self.screen_coords.x + THE_SQUARE_SIZE.width + 1;
             }
             Directions::West => {
-                new_x = self.screen_x - THE_SQUARE_SIZE.width - 1;
+                new_x = self.screen_coords.x - THE_SQUARE_SIZE.width - 1;
             }
         }
 
@@ -65,6 +76,6 @@ impl Square {
 
     pub fn draw_square(&self, sout: &mut Stdout) -> Result<()> {
         self.contents
-            .draw_square_contents(sout, self.screen_x, self.screen_y)
+            .draw_square_contents(sout, self.screen_coords.x, self.screen_coords.y)
     }
 }
