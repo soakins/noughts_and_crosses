@@ -17,6 +17,7 @@ use crossterm::{ExecutableCommand, QueueableCommand};
 use square::Square;
 use square_contents::SquareContents;
 use square_size::THE_SQUARE_SIZE;
+use winning_lines::WinningLineDirections;
 
 fn initialise_standard_out_variable() -> Stdout {
     stdout()
@@ -77,20 +78,26 @@ fn main() -> Result<()> {
     let mut all_squares: Vec<Square> = Vec::new();
     let mut paths: Vec<square::PathsForCursor> = Vec::new();
     let mut winning_lines = winning_lines::WinningLines::new();
+    let mut winning_line_coords = winning_line_coords_for_squares::WinningLineCoords::new();
 
     {
-        let top_left_square = Square::new(1, 1);
-        let top_centre_square = top_left_square.spawn_another_square(square::Directions::East);
-        let top_right_square = top_centre_square.spawn_another_square(square::Directions::East);
-        let middle_left_square = top_left_square.spawn_another_square(square::Directions::South);
-        let middle_centre_square =
-            top_centre_square.spawn_another_square(square::Directions::South);
-        let middle_right_square = top_right_square.spawn_another_square(square::Directions::South);
-        let bottom_left_square = middle_left_square.spawn_another_square(square::Directions::South);
-        let bottom_centre_square =
-            middle_centre_square.spawn_another_square(square::Directions::South);
-        let bottom_right_square =
-            middle_right_square.spawn_another_square(square::Directions::South);
+        let top_left_square = Square::new(1, 1, &mut winning_line_coords);
+        let top_centre_square = top_left_square
+            .spawn_another_square(square::Directions::East, &mut winning_line_coords);
+        let top_right_square = top_centre_square
+            .spawn_another_square(square::Directions::East, &mut winning_line_coords);
+        let middle_left_square = top_left_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
+        let middle_centre_square = top_centre_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
+        let middle_right_square = top_right_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
+        let bottom_left_square = middle_left_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
+        let bottom_centre_square = middle_centre_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
+        let bottom_right_square = middle_right_square
+            .spawn_another_square(square::Directions::South, &mut winning_line_coords);
 
         all_squares.push(top_left_square); // index 0
         all_squares.push(top_centre_square);
@@ -176,26 +183,54 @@ fn main() -> Result<()> {
             to_west: Some(bottom_centre_square),
         });
 
-        winning_lines.add_a_line(top_left_square, top_centre_square, top_right_square);
+        winning_lines.add_a_line(
+            top_left_square,
+            top_centre_square,
+            top_right_square,
+            WinningLineDirections::Horizontal,
+        );
         winning_lines.add_a_line(
             middle_left_square,
             middle_centre_square,
             middle_right_square,
+            WinningLineDirections::Horizontal,
         );
         winning_lines.add_a_line(
             bottom_left_square,
             bottom_centre_square,
             bottom_right_square,
+            WinningLineDirections::Horizontal,
         );
-        winning_lines.add_a_line(top_left_square, middle_left_square, bottom_left_square);
+        winning_lines.add_a_line(
+            top_left_square,
+            middle_left_square,
+            bottom_left_square,
+            WinningLineDirections::Vertical,
+        );
         winning_lines.add_a_line(
             top_centre_square,
             middle_centre_square,
             bottom_centre_square,
+            WinningLineDirections::Vertical,
         );
-        winning_lines.add_a_line(top_right_square, middle_right_square, bottom_right_square);
-        winning_lines.add_a_line(top_left_square, middle_centre_square, bottom_right_square);
-        winning_lines.add_a_line(top_right_square, middle_centre_square, bottom_left_square);
+        winning_lines.add_a_line(
+            top_right_square,
+            middle_right_square,
+            bottom_right_square,
+            WinningLineDirections::Vertical,
+        );
+        winning_lines.add_a_line(
+            top_left_square,
+            middle_centre_square,
+            bottom_right_square,
+            WinningLineDirections::Top_Left_Bottom_Right,
+        );
+        winning_lines.add_a_line(
+            top_right_square,
+            middle_centre_square,
+            bottom_left_square,
+            WinningLineDirections::Top_Right_Bottom_Left,
+        );
     }
 
     let mut cursor_square: usize = 0;
@@ -275,8 +310,21 @@ fn main() -> Result<()> {
                                 }
                                 sq.draw_square(&mut sout)?;
                                 let a_win = winning_lines.test_for_a_win(&all_squares);
-                                if a_win.is_some() {
-                                    panic!("A win!");
+                                match a_win {
+                                    None => {}
+                                    Some(win_line) => {
+                                        // So, the win_line we have here is a Vector of usize, with each being
+                                        // a square in the all_squares list, I think. Let's see if we can print that out.
+                                        let mut outstring = String::new();
+                                        outstring.push_str(&win_line.direction.to_string());
+                                        for sq in win_line.square_indices.iter() {
+                                            outstring.push_str(&format!("-{}-", sq));
+                                        }
+                                        panic!(
+                                            "I don't know why I didn't see that panic?{}",
+                                            outstring
+                                        );
+                                    }
                                 }
                                 players.next_player();
                             }
