@@ -40,7 +40,7 @@ impl Square {
             y: screen_y,
         };
         let mut vert_w_line_coords: Vec<ScreenCoords> = Vec::new();
-        let wlx = (screen_x + THE_SQUARE_SIZE.width) / 2; // having done a little test, this division will round the result down if the denominator is an odd number...
+        let wlx = screen_x + (THE_SQUARE_SIZE.width / 2); // having done a little test, this division will round the result down if the denominator is an odd number...
         for wly in screen_y..screen_y + THE_SQUARE_SIZE.height {
             let sc = ScreenCoords { x: wlx, y: wly };
             vert_w_line_coords.push(sc);
@@ -49,7 +49,7 @@ impl Square {
             winning_line_coords.add_a_set_of_coordinates(&mut vert_w_line_coords);
 
         let mut horiz_w_line_coords: Vec<ScreenCoords> = Vec::new();
-        let wly = (screen_y + THE_SQUARE_SIZE.height) / 2;
+        let wly = screen_y + (THE_SQUARE_SIZE.height / 2);
         for wlx in screen_x..screen_x + THE_SQUARE_SIZE.width {
             let sc = ScreenCoords { x: wlx, y: wly };
             horiz_w_line_coords.push(sc);

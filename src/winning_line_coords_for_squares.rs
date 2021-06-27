@@ -1,4 +1,4 @@
-use crate::screen_coords::{self, ScreenCoords};
+use crate::screen_coords::ScreenCoords;
 pub struct WinningLineCoords {
     all_coords: Vec<ScreenCoords>,
 }
