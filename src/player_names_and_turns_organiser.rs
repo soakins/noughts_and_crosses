@@ -1,8 +1,23 @@
+use std::fmt::{Display, Formatter};
+
 use crate::square_contents::SquareContents;
 
 pub struct PlayerDetails {
     pub player_name: String,
     pub player_mark: SquareContents,
+    pub games_won: u32,
+}
+impl PlayerDetails {
+    fn new(player_name: String, player_mark: SquareContents) -> Self {
+        PlayerDetails {
+            player_name,
+            player_mark,
+            games_won: 0,
+        }
+    }
+    fn increment_games_won(&mut self) {
+        self.games_won += 1;
+    }
 }
 
 pub struct PlayerNames {
@@ -13,6 +28,21 @@ pub struct PlayerNames {
     last_round_number: usize,
     round_number: usize,
 }
+impl Display for PlayerNames {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "{}({}) plays {}({}), score is {} - {} after {} rounds.",
+            self.player1.player_name,
+            self.player1.player_mark,
+            self.player2.player_name,
+            self.player2.player_mark,
+            self.player1.games_won,
+            self.player2.games_won,
+            self.last_round_number
+        )
+    }
+}
 impl PlayerNames {
     pub fn new(
         player1: String,
@@ -21,14 +51,8 @@ impl PlayerNames {
         player2_plays: SquareContents,
     ) -> Self {
         PlayerNames {
-            player1: PlayerDetails {
-                player_name: player1,
-                player_mark: player1_plays,
-            },
-            player2: PlayerDetails {
-                player_name: player2,
-                player_mark: player2_plays,
-            },
+            player1: PlayerDetails::new(player1, player1_plays),
+            player2: PlayerDetails::new(player2, player2_plays),
             last_player_returned: None,
             first_player_returned: None,
             last_round_number: 0,
@@ -61,6 +85,7 @@ impl PlayerNames {
     }
 
     pub fn next_round(&mut self) {
+        self.last_round_number = self.round_number;
         self.round_number += 1;
     }
 
@@ -122,5 +147,23 @@ mod player_name_tests {
             let pd = pn.last_player();
             println!("  2nd round / Attempt {}: {}", b, pd.player_name);
         }
+    }
+
+    #[test]
+    fn test_two() {
+        let mut pn = PlayerNames::new(
+            String::from("Polly"),
+            SquareContents::O,
+            String::from("Molly"),
+            SquareContents::X,
+        );
+
+        println!("{}", pn);
+
+        pn.next_round();
+
+        pn.player2.increment_games_won();
+
+        println!("{}", pn);
     }
 }
