@@ -23,8 +23,6 @@ fn initialise_standard_out_variable() -> Stdout {
     stdout()
 }
 
-fn test_for_a_win() {}
-
 fn initialise_crossterm(sout: &mut Stdout) -> Result<()> {
     // execute the crossterm command to flip to the alternate screen, squashing the return type unless it's an error, using map
     sout.execute(crossterm::terminal::EnterAlternateScreen)
@@ -65,7 +63,6 @@ fn try_moving<'a>(
             break;
         }
     }
-
     destination_square_maybe
 }
 
@@ -241,16 +238,17 @@ fn main() -> Result<()> {
         String::from("you"),
         SquareContents::O,
     );
-    let mut keep_looping = true;
 
     players.next_player(); // this nudges the player name organiser onto the first turn.
+
+    let mut keep_looping = true;
 
     while keep_looping {
         // draw the game cursor
 
         let sq = all_squares
             .get(cursor_square)
-            .expect("Again, we should have foud a square.");
+            .expect("Again, we should have found a square.");
         sout.queue(crossterm::cursor::MoveTo(
             sq.screen_coords.x,
             sq.screen_coords.y,
@@ -315,15 +313,40 @@ fn main() -> Result<()> {
                                     Some(win_line) => {
                                         // So, the win_line we have here is a Vector of usize, with each being
                                         // a square in the all_squares list, I think. Let's see if we can print that out.
-                                        let mut outstring = String::new();
-                                        outstring.push_str(&win_line.direction.to_string());
-                                        for sq in win_line.square_indices.iter() {
-                                            outstring.push_str(&format!("-{}-", sq));
+                                        for index_to_square_on_the_win_line in
+                                            &win_line.square_indices
+                                        {
+                                            let this_square = all_squares
+                                                .get(*index_to_square_on_the_win_line)
+                                                .expect("202106252154");
+                                            let index_to_these_coords = match win_line.direction {
+                                                WinningLineDirections::Horizontal => {
+                                                    this_square
+                                                        .horizontal_winning_line_coord_indices
+                                                }
+                                                WinningLineDirections::Vertical => {
+                                                    this_square.vertical_winning_line_coord_indices
+                                                }
+                                                WinningLineDirections::Top_Left_Bottom_Right => {
+                                                    this_square
+                                                        .tlbr_diagonal_winning_line_coord_indices
+                                                }
+                                                WinningLineDirections::Top_Right_Bottom_Left => {
+                                                    this_square
+                                                        .trbl_diagonal_winning_line_coord_indices
+                                                }
+                                            };
+                                            let all_the_coords = winning_line_coords
+                                                .return_a_set_of_coordinates(index_to_these_coords);
+                                            for coord_in_the_square in all_the_coords.iter() {
+                                                sout.queue(crossterm::cursor::MoveTo(
+                                                    coord_in_the_square.x,
+                                                    coord_in_the_square.y,
+                                                ))?
+                                                .queue(crossterm::style::Print("*"))?;
+                                            }
                                         }
-                                        panic!(
-                                            "I don't know why I didn't see that panic?{}",
-                                            outstring
-                                        );
+                                        sout.flush()?;
                                     }
                                 }
                                 players.next_player();
