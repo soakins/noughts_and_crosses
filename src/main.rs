@@ -19,6 +19,9 @@ use square_contents::SquareContents;
 use square_size::THE_SQUARE_SIZE;
 use winning_lines::WinningLineDirections;
 
+const CHARACTER_H: char = '\u{255C}';
+const CHARACTER_V: char = '\u{2551}';
+
 fn initialise_standard_out_variable() -> Stdout {
     stdout()
 }
@@ -220,13 +223,13 @@ fn main() -> Result<()> {
             top_left_square,
             middle_centre_square,
             bottom_right_square,
-            WinningLineDirections::Top_Left_Bottom_Right,
+            WinningLineDirections::TopLeftBottomRight,
         );
         winning_lines.add_a_line(
             top_right_square,
             middle_centre_square,
             bottom_left_square,
-            WinningLineDirections::Top_Right_Bottom_Left,
+            WinningLineDirections::TopRightBottomLeft,
         );
     }
 
@@ -327,11 +330,11 @@ fn main() -> Result<()> {
                                                 WinningLineDirections::Vertical => {
                                                     this_square.vertical_winning_line_coord_indices
                                                 }
-                                                WinningLineDirections::Top_Left_Bottom_Right => {
+                                                WinningLineDirections::TopLeftBottomRight => {
                                                     this_square
                                                         .tlbr_diagonal_winning_line_coord_indices
                                                 }
-                                                WinningLineDirections::Top_Right_Bottom_Left => {
+                                                WinningLineDirections::TopRightBottomLeft => {
                                                     this_square
                                                         .trbl_diagonal_winning_line_coord_indices
                                                 }

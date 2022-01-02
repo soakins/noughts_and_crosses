@@ -2,7 +2,7 @@ use std::{fmt::Display, io::Stdout};
 
 use crossterm::{QueueableCommand, Result};
 
-use crate::square_size::THE_SQUARE_SIZE;
+use crate::{square_size::THE_SQUARE_SIZE, CHARACTER_H, CHARACTER_V};
 
 fn draw_lines(sout: &mut Stdout, lines: Vec<&str>, carriage_return_width: u16) -> Result<()> {
     for a in lines.iter() {
@@ -63,6 +63,17 @@ impl SquareContents {
                 lines.push("        ");
                 lines.push("        ");
                 lines.push("        ");
+            }
+            (SquareContents::Blank, 9, 9) => {
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("        ");
+                lines.push("");
             }
             (SquareContents::O, 5, 5) => {
                 lines.push("     ");

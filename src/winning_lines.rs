@@ -6,16 +6,16 @@ use crate::{square::Square, square_contents::SquareContents};
 pub enum WinningLineDirections {
     Vertical,
     Horizontal,
-    Top_Left_Bottom_Right,
-    Top_Right_Bottom_Left,
+    TopLeftBottomRight,
+    TopRightBottomLeft,
 }
 impl Display for WinningLineDirections {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let out = match self {
             Self::Vertical => "Vertical",
             Self::Horizontal => "Horizontal",
-            Self::Top_Left_Bottom_Right => "TLBR",
-            Self::Top_Right_Bottom_Left => "TRBL",
+            Self::TopLeftBottomRight => "TLBR",
+            Self::TopRightBottomLeft => "TRBL",
         };
         write(f, format_args!("{}", out))
     }
